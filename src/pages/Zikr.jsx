@@ -21,7 +21,7 @@ const DEFAULT_ZIKRS = [
     title: { fr: "Allahu Akbar", ar: "اللَّهُ أَكْبَرُ", en: "Allahu Akbar" },
     arabic: "اللَّهُ أَكْبَرُ",
     translation: { fr: "Allah est le plus grand", ar: "الله أكبر", en: "Allah is the Greatest" },
-    target: 34, category: "general",
+    target: 33, category: "general",
   },
   {
     id: "after_prayer_1",
@@ -39,7 +39,7 @@ const DEFAULT_ZIKRS = [
       ar: "اللهم إنك عفو تحب العفو فاعف عني",
       en: "O Allah, You are Forgiving and love forgiveness, so forgive me",
     },
-    target: 100, category: "laylatul_qadr",
+    target: 0, category: "laylatul_qadr",
   },
 ];
 
@@ -56,6 +56,7 @@ export default function Zikr({ lang }) {
   const [newTarget, setNewTarget] = useState("33");
   const [filter, setFilter] = useState("all");
   const [popId, setPopId] = useState(null);
+  const [completed, setCompleted] = useState(false);
 
   const categories = [
     { key: "all", label: { fr: "Tout", ar: "الكل", en: "All" } },
@@ -69,14 +70,17 @@ export default function Zikr({ lang }) {
 
   const increment = (id) => {
     if (paused && activeId === id) return;
+    const zikr = zikrs.find((z) => z.id === id);
     setCounts((prev) => {
       const current = prev[id] || 0;
-      const zikr = zikrs.find((z) => z.id === id);
       const newCount = current + 1;
-      if (zikr && newCount % zikr.target === 0) {
+      // Save session
+      if (zikr && zikr.target > 0 && newCount % zikr.target === 0) {
         const sessions = JSON.parse(localStorage.getItem("sabil_zikr_sessions") || "[]");
         sessions.push({ id, count: zikr.target, date: new Date().toISOString() });
         localStorage.setItem("sabil_zikr_sessions", JSON.stringify(sessions));
+        setCompleted(true);
+        setTimeout(() => setCompleted(false), 1500);
       }
       return { ...prev, [id]: newCount };
     });
@@ -108,6 +112,13 @@ export default function Zikr({ lang }) {
 
   const filtered = filter === "all" ? zikrs : zikrs.filter((z) => z.category === filter);
   const activeZikr = zikrs.find((z) => z.id === activeId);
+  const currentCount = counts[activeId] || 0;
+  const progress = activeZikr && activeZikr.target > 0
+    ? (currentCount % activeZikr.target) / activeZikr.target * 100
+    : 0;
+  const cycles = activeZikr && activeZikr.target > 0
+    ? Math.floor(currentCount / activeZikr.target)
+    : 0;
 
   return (
     <div className="min-h-screen">
@@ -115,6 +126,15 @@ export default function Zikr({ lang }) {
         <h1 className="font-display text-3xl font-light text-emerald-50">{getText(lang, "zikr")}</h1>
         <p className="font-arabic text-amber-400/70 text-sm mt-1">ذِكْرُ اللَّهِ</p>
       </div>
+
+      {/* Completed animation */}
+      {completed && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-emerald-600/90 rounded-3xl px-8 py-4 shadow-2xl">
+            <p className="text-white font-display text-2xl text-center">✨ {getText(lang, "completed")}</p>
+          </div>
+        </div>
+      )}
 
       {activeZikr && (
         <div className="mx-4 mb-4 bg-gradient-to-br from-emerald-800 to-emerald-900 rounded-3xl p-6 border border-emerald-600/30 shadow-xl">
@@ -129,20 +149,34 @@ export default function Zikr({ lang }) {
               onClick={() => increment(activeId)}
               className={`w-44 h-44 flex flex-col items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-800 shadow-2xl border border-emerald-500/30 active:scale-95 transition-transform ${popId === activeId ? "pop" : ""}`}
             >
-              <span className="font-display text-6xl font-light text-white">{counts[activeId] || 0}</span>
-              <span className="text-emerald-300/50 text-xs font-body">/ {activeZikr.target}</span>
+              <span className="font-display text-6xl font-light text-white">{currentCount}</span>
+              {activeZikr.target > 0 && (
+                <span className="text-emerald-300/50 text-xs font-body">/ {activeZikr.target}</span>
+              )}
             </button>
           </div>
 
-          <div className="mt-4 h-1.5 bg-emerald-950 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(((counts[activeId] || 0) % activeZikr.target / activeZikr.target) * 100, 100)}%` }}
-            />
-          </div>
-          <p className="text-center text-emerald-400/50 text-xs mt-1 font-body">
-            {Math.floor((counts[activeId] || 0) / activeZikr.target)} × {activeZikr.target}
-          </p>
+          {/* Progress bar — only if target > 0 */}
+          {activeZikr.target > 0 && (
+            <>
+              <div className="mt-4 h-1.5 bg-emerald-950 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(progress, 100)}%` }}
+                />
+              </div>
+              <p className="text-center text-emerald-400/50 text-xs mt-1 font-body">
+                {cycles} × {activeZikr.target}
+              </p>
+            </>
+          )}
+
+          {/* No target — just show total */}
+          {activeZikr.target === 0 && (
+            <p className="text-center text-emerald-400/50 text-xs mt-4 font-body">
+              {lang === "fr" ? "Compteur libre" : lang === "ar" ? "عداد حر" : "Free counter"}
+            </p>
+          )}
 
           <div className="flex gap-2 mt-4">
             <button onClick={() => setPaused(!paused)}
@@ -182,7 +216,8 @@ export default function Zikr({ lang }) {
                 <div className="flex-1">
                   <p className="font-arabic text-lg text-amber-300 leading-loose">{z.arabic}</p>
                   <p className="text-emerald-400/60 text-xs font-body mt-0.5">
-                    {typeof z.title === "object" ? z.title[lang] : z.title} • {z.target} {getText(lang, "times")}
+                    {typeof z.title === "object" ? z.title[lang] : z.title}
+                    {z.target > 0 ? ` • ${z.target} ${getText(lang, "times")}` : ` • ${lang === "fr" ? "Libre" : lang === "ar" ? "حر" : "Free"}`}
                   </p>
                 </div>
                 <span className="font-display text-2xl text-emerald-300 ml-3">{counts[z.id] || 0}</span>
