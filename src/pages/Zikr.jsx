@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { getText } from "../i18n";
 
 const DEFAULT_ZIKRS = [
@@ -44,10 +44,7 @@ const DEFAULT_ZIKRS = [
 ];
 
 export default function Zikr({ lang }) {
-  const [zikrs, setZikrs] = useState(() => {
-    const saved = localStorage.getItem("sabil_zikrs");
-    return saved ? JSON.parse(saved) : DEFAULT_ZIKRS;
-  });
+  const [zikrs, setZikrs] = useState(DEFAULT_ZIKRS);
   const [activeId, setActiveId] = useState(null);
   const [counts, setCounts] = useState(() => JSON.parse(localStorage.getItem("sabil_counts") || "{}"));
   const [paused, setPaused] = useState(false);
@@ -65,7 +62,6 @@ export default function Zikr({ lang }) {
     { key: "laylatul_qadr", label: { fr: "Qadr", ar: "القدر", en: "Qadr" } },
   ];
 
-  useEffect(() => { localStorage.setItem("sabil_zikrs", JSON.stringify(zikrs)); }, [zikrs]);
   useEffect(() => { localStorage.setItem("sabil_counts", JSON.stringify(counts)); }, [counts]);
 
   const increment = (id) => {
@@ -74,7 +70,6 @@ export default function Zikr({ lang }) {
     setCounts((prev) => {
       const current = prev[id] || 0;
       const newCount = current + 1;
-      // Save session
       if (zikr && zikr.target > 0 && newCount % zikr.target === 0) {
         const sessions = JSON.parse(localStorage.getItem("sabil_zikr_sessions") || "[]");
         sessions.push({ id, count: zikr.target, date: new Date().toISOString() });
@@ -127,7 +122,6 @@ export default function Zikr({ lang }) {
         <p className="font-arabic text-amber-400/70 text-sm mt-1">ذِكْرُ اللَّهِ</p>
       </div>
 
-      {/* Completed animation */}
       {completed && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
           <div className="bg-emerald-600/90 rounded-3xl px-8 py-4 shadow-2xl">
@@ -156,14 +150,11 @@ export default function Zikr({ lang }) {
             </button>
           </div>
 
-          {/* Progress bar — only if target > 0 */}
           {activeZikr.target > 0 && (
             <>
               <div className="mt-4 h-1.5 bg-emerald-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(progress, 100)}%` }}
-                />
+                <div className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(progress, 100)}%` }} />
               </div>
               <p className="text-center text-emerald-400/50 text-xs mt-1 font-body">
                 {cycles} × {activeZikr.target}
@@ -171,7 +162,6 @@ export default function Zikr({ lang }) {
             </>
           )}
 
-          {/* No target — just show total */}
           {activeZikr.target === 0 && (
             <p className="text-center text-emerald-400/50 text-xs mt-4 font-body">
               {lang === "fr" ? "Compteur libre" : lang === "ar" ? "عداد حر" : "Free counter"}
@@ -237,10 +227,10 @@ export default function Zikr({ lang }) {
           <div className="bg-emerald-900/50 rounded-2xl p-4 border border-emerald-700/30">
             <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
               placeholder={getText(lang, "zikr_title")}
-              className="w-full bg-emerald-950 rounded-xl px-4 py-2.5 text-emerald-50 text-sm font-body border border-emerald-800/50 mb-3 outline-none focus:border-emerald-600" />
+              className="w-full bg-emerald-950 rounded-xl px-4 py-2.5 text-emerald-50 text-sm font-body border border-emerald-800/50 mb-3 outline-none" />
             <input type="number" value={newTarget} onChange={(e) => setNewTarget(e.target.value)}
               placeholder={getText(lang, "zikr_count")}
-              className="w-full bg-emerald-950 rounded-xl px-4 py-2.5 text-emerald-50 text-sm font-body border border-emerald-800/50 mb-3 outline-none focus:border-emerald-600" />
+              className="w-full bg-emerald-950 rounded-xl px-4 py-2.5 text-emerald-50 text-sm font-body border border-emerald-800/50 mb-3 outline-none" />
             <div className="flex gap-2">
               <button onClick={addZikr} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-body">
                 {getText(lang, "add")}
