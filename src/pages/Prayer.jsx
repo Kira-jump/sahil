@@ -23,11 +23,21 @@ const WUDU_STEPS = [
 ];
 
 const PRAYERS = [
-  { name: { fr: "Fajr", ar: "الفجر", en: "Fajr" }, rakats: { fr: "2 Sunnah + 2 Fard", ar: "2 سنة + 2 فرض", en: "2 Sunnah + 2 Fard" }, time: { fr: "À l'aube", ar: "عند الفجر", en: "At dawn" }, icon: "🌅" },
-  { name: { fr: "Dhuhr", ar: "الظهر", en: "Dhuhr" }, rakats: { fr: "4 Sunnah + 4 Fard + 2 Sunnah + 2 Nafl", ar: "4 سنة + 4 فرض + 2 سنة + 2 نافلة", en: "4 Sunnah + 4 Fard + 2 Sunnah + 2 Nafl" }, time: { fr: "À midi", ar: "عند الظهيرة", en: "At noon" }, icon: "☀️" },
-  { name: { fr: "Asr", ar: "العصر", en: "Asr" }, rakats: { fr: "4 Sunnah + 4 Fard", ar: "4 سنة + 4 فرض", en: "4 Sunnah + 4 Fard" }, time: { fr: "L'après-midi", ar: "بعد الظهر", en: "Afternoon" }, icon: "🌤️" },
-  { name: { fr: "Maghrib", ar: "المغرب", en: "Maghrib" }, rakats: { fr: "3 Fard + 2 Sunnah + 2 Nafl", ar: "3 فرض + 2 سنة + 2 نافلة", en: "3 Fard + 2 Sunnah + 2 Nafl" }, time: { fr: "Au coucher du soleil", ar: "عند المغرب", en: "At sunset" }, icon: "🌇" },
-  { name: { fr: "Isha", ar: "العشاء", en: "Isha" }, rakats: { fr: "4 Sunnah + 4 Fard + 2 Sunnah + 2 Nafl + 3 Witr", ar: "4 سنة + 4 فرض + 2 سنة + 2 نافلة + 3 وتر", en: "4 Sunnah + 4 Fard + 2 Sunnah + 2 Nafl + 3 Witr" }, time: { fr: "La nuit", ar: "في الليل", en: "At night" }, icon: "🌙" },
+  { name: { fr: "Fajr", ar: "الفجر", en: "Fajr" },
+    rakats: { fr: "2 Fard", ar: "2 فرض", en: "2 Fard" },
+    time: { fr: "À l'aube", ar: "عند الفجر", en: "At dawn" }, icon: "🌅" },
+  { name: { fr: "Dhuhr", ar: "الظهر", en: "Dhuhr" },
+    rakats: { fr: "4 Fard", ar: "4 فرض", en: "4 Fard" },
+    time: { fr: "À midi", ar: "عند الظهيرة", en: "At noon" }, icon: "☀️" },
+  { name: { fr: "Asr", ar: "العصر", en: "Asr" },
+    rakats: { fr: "4 Fard", ar: "4 فرض", en: "4 Fard" },
+    time: { fr: "L'après-midi", ar: "بعد الظهر", en: "Afternoon" }, icon: "🌤️" },
+  { name: { fr: "Maghrib", ar: "المغرب", en: "Maghrib" },
+    rakats: { fr: "3 Fard", ar: "3 فرض", en: "3 Fard" },
+    time: { fr: "Au coucher du soleil", ar: "عند المغرب", en: "At sunset" }, icon: "🌇" },
+  { name: { fr: "Isha", ar: "العشاء", en: "Isha" },
+    rakats: { fr: "4 Fard", ar: "4 فرض", en: "4 Fard" },
+    time: { fr: "La nuit", ar: "في الليل", en: "At night" }, icon: "🌙" },
 ];
 
 const PRAYER_STEPS = [
@@ -88,18 +98,41 @@ export default function Prayer({ lang }) {
       <div className="px-4 pb-4">
         {tab === "rakats" && (
           <div className="space-y-3">
+            <div className="bg-amber-900/20 rounded-2xl p-3 border border-amber-700/20 mb-4">
+              <p className="text-amber-400/70 text-xs font-body text-center">
+                {lang === "fr" ? "🕌 Rakat obligatoires (Fard) uniquement"
+                  : lang === "ar" ? "🕌 الركعات الفرضية فقط"
+                  : "🕌 Obligatory (Fard) rakats only"}
+              </p>
+            </div>
             {PRAYERS.map((p) => (
               <div key={p.name.en} className="bg-emerald-900/30 rounded-2xl p-4 border border-emerald-800/30">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">{p.icon}</span>
-                  <div>
-                    <p className="text-amber-300 font-body font-medium">{p.name[lang]}</p>
-                    <p className="text-emerald-400/50 text-xs font-body">{p.time[lang]}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{p.icon}</span>
+                    <div>
+                      <p className="text-amber-300 font-body font-medium">{p.name[lang]}</p>
+                      <p className="text-emerald-400/50 text-xs font-body">{p.time[lang]}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-display text-3xl text-emerald-300 font-light">
+                      {p.rakats[lang].split(" ")[0]}
+                    </p>
+                    <p className="text-emerald-400/50 text-xs font-body">
+                      {lang === "fr" ? "Fard" : lang === "ar" ? "فرض" : "Fard"}
+                    </p>
                   </div>
                 </div>
-                <p className="text-emerald-200/70 text-sm font-body">{p.rakats[lang]}</p>
               </div>
             ))}
+            <div className="bg-emerald-900/20 rounded-2xl p-3 border border-emerald-800/20 mt-2">
+              <p className="text-emerald-400/40 text-xs font-body text-center">
+                {lang === "fr" ? "Total : 17 Fard par jour"
+                  : lang === "ar" ? "المجموع: 17 ركعة فرضاً في اليوم"
+                  : "Total: 17 Fard per day"}
+              </p>
+            </div>
           </div>
         )}
 
